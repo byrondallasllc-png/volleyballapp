@@ -1,0 +1,156 @@
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem 0;
+}
+
+.page-header h1 {
+  font-size: 3rem;
+  color: var(--vb-navy);
+  margin-bottom: 0.75rem;
+}
+
+.page-subtitle {
+  font-size: 1.25rem;
+  color: var(--vb-gray-600);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.coming-soon-card {
+  max-width: 700px;
+  margin: 0 auto;
+  background: white;
+  border-radius: var(--radius-2xl);
+  padding: 3rem 2.5rem;
+  box-shadow: var(--shadow-xl);
+  text-align: center;
+  border: 3px solid var(--vb-orange);
+}
+
+.coming-soon-icon {
+  font-size: 5rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+.coming-soon-card h2 {
+  font-size: 2rem;
+  color: var(--vb-navy);
+  margin-bottom: 1rem;
+}
+
+.coming-soon-card p {
+  font-size: 1.125rem;
+  color: var(--vb-gray-600);
+  margin-bottom: 1.5rem;
+}
+
+.coming-soon-list {
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto 2rem;
+  list-style: none;
+  padding: 0;
+}
+
+.coming-soon-list li {
+  padding: 0.75rem 0;
+  padding-left: 2rem;
+  position: relative;
+  color: var(--vb-gray-700);
+  font-size: 1.125rem;
+}
+
+.coming-soon-list li::before {
+  content: '🏐';
+  position: absolute;
+  left: 0;
+  font-size: 1.25rem;
+}
+
+.coming-soon-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Tournament Detail Specific */
+.tournament-detail {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.detail-header {
+  background: linear-gradient(135deg, var(--vb-navy) 0%, var(--vb-navy-light) 100%);
+  border-radius: var(--radius-2xl);
+  padding: 3rem 2.5rem;
+  color: white;
+  margin-bottom: 3rem;
+  box-shadow: var(--shadow-xl);
+}
+
+.detail-badges {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.detail-title {
+  font-size: 3rem;
+  color: white;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.detail-location {
+  font-size: 1.25rem;
+  opacity: 0.9;
+}
+
+.not-found {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.not-found h1 {
+  font-size: 2.5rem;
+  color: var(--vb-navy);
+  margin-bottom: 1rem;
+}
+
+.not-found p {
+  font-size: 1.25rem;
+  color: var(--vb-gray-600);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 2.25rem;
+  }
+
+  .page-subtitle {
+    font-size: 1.125rem;
+  }
+
+  .coming-soon-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .coming-soon-icon {
+    font-size: 4rem;
+  }
+
+  .coming-soon-card h2 {
+    font-size: 1.75rem;
+  }
+
+  .detail-header {
+    padding: 2rem 1.5rem;
+  }
+
+  .detail-title {
+    font-size: 2rem;
+  }
+}
