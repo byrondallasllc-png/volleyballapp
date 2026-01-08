@@ -1,0 +1,14 @@
+/* TournamentDetail.css - Styles for Tournament Detail Page */
+
+.container {
+  padding: 20px;
+}
+
+.page-header {
+  margin-bottom: 20px;
+}
+
+.page-subtitle {
+  color: #666;
+  font-size: 14px;
+}
