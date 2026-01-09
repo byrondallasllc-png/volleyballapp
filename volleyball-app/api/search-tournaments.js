@@ -30,11 +30,9 @@ module.exports = async (req, res) => {
     // Call Perplexity API
     const perplexityKey = process.env.PERPLEXITY_API_KEY;
 
-    if (!perplexityKey) {
-      console.error('PERPLEXITY_API_KEY not set');
+    // Temporarily bypass Perplexity API - return mock data      console.error('PERPLEXITY_API_KEY not set');
       // Return mock data if no API key
-      return res.status(200).json({
-        tournaments: getMockTournaments(region),
+    return res.status(200).json({        tournaments: getMockTournaments(region),
         source: 'mock'
       });
     }
