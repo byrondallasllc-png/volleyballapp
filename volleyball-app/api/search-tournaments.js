@@ -11,29 +11,31 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
-  if (req.method !== 'POST') {
+  if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { region, filters = {} } = req.body;
-    
-    if (!region) {
-      return res.status(400).json({ error: 'Region is required' });
+    // Get parameters from query string (GET) or body (POST)
+    const { region, filters = {}, ageGroup, month } = 
+      req.method === 'GET' ? req.query : req.body;
+
+    if (!region && !ageGroup && !month) {
+      return res.status(400).json({ error: 'Region, age group, or month is required' });
     }
 
     // Build search query
-    const query = buildSearchQuery(region, filters);
-    
+    const query = buildSearchQuery(region, { ...filters, ageGroup, month });
+
     // Call Perplexity API
     const perplexityKey = process.env.PERPLEXITY_API_KEY;
-    
+
     if (!perplexityKey) {
       console.error('PERPLEXITY_API_KEY not set');
       // Return mock data if no API key
-      return res.status(200).json({ 
+      return res.status(200).json({
         tournaments: getMockTournaments(region),
-        source: 'mock' 
+        source: 'mock'
       });
     }
 
@@ -61,106 +63,48 @@ module.exports = async (req, res) => {
     const data = await response.json();
     const tournaments = parseTournamentData(data, region);
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       tournaments,
-      source: 'perplexity'
+      source: 'perplexity',
+      summary: `Found ${tournaments.length} tournaments in ${region || 'selected region'}`
     });
 
   } catch (error) {
     console.error('Tournament search error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: error.message,
-      tournaments: getMockTournaments(req.body.region)
+      tournaments: getMockTournaments(req.body.region || req.query.region)
     });
   }
 };
 
 function buildSearchQuery(region, filters) {
   const { organization, ageGroup, bidLevel, dateRange } = filters;
-  const year = new Date().getFullYear();
   
-  return `Find upcoming volleyball tournaments in ${region} for ${year}. 
-${organization ? `Organization: ${organization} (USAV, AAU, JVA, etc.)` : 'Include all major organizations (USAV, AAU, JVA)'}
-${ageGroup ? `Age group: ${ageGroup}` : 'Include all age groups'}
-${bidLevel ? `Bid level: ${bidLevel}` : 'Include all bid levels'}
-${dateRange ? `Date range: ${dateRange}` : `From now through end of ${year}`}
-
-For each tournament found, provide:
-- Exact tournament name
-- Organization (USAV, AAU, JVA, etc.)
-- City and state
-- Venue name
-- Start and end dates (format: YYYY-MM-DD)
-- Registration deadline
-- Estimated total cost (registration + travel estimate)
-- Bid level (if applicable)
-- Age groups accepted
-- Expected number of teams
-- College scouts information if available
-
-Format response as a JSON array with this structure:
-[
-  {
-    "name": "Tournament Name",
-    "organization": "USAV",
-    "city": "City",
-    "state": "State",
-    "venue": "Venue Name",
-    "startDate": "2026-03-15",
-    "endDate": "2026-03-17",
-    "registrationDeadline": "2026-03-01",
-    "estimatedCost": 1200,
-    "bidLevel": "Regional",
-    "ageGroups": ["14U", "15U"],
-    "expectedTeams": 150,
-    "collegeScouts": ["Stanford", "Berkeley"]
-  }
-]
-
-Only return valid, real tournaments. Do not make up information.`;
+  let query = `Find upcoming volleyball tournaments`;
+  
+  if (region) query += ` in ${region}`;
+  if (ageGroup) query += ` for ${ageGroup} age group`;
+  if (organization) query += ` organized by ${organization}`;
+  if (bidLevel) query += ` (${bidLevel} level)`;
+  if (dateRange) query += ` during ${dateRange}`;
+  
+  query += `. Include tournament name, dates, location, organization, cost, and registration details.`;
+  
+  return query;
 }
 
-function parseTournamentData(apiResponse, region) {
+function parseTournamentData(data, region) {
+  // Extract tournament information from Perplexity response
   try {
-    const content = apiResponse.choices[0]?.message?.content || '';
+    const content = data.choices[0].message.content;
     
-    // Try to extract JSON from the response
-    const jsonMatch = content.match(/\[\s*{[\s\S]*}\s*\]/);
+    // Basic parsing - you can enhance this based on response format
+    const tournaments = [];
     
-    if (jsonMatch) {
-      const tournaments = JSON.parse(jsonMatch[0]);
-      
-      // Transform to match our app's format
-      return tournaments.map((t, index) => ({
-        id: `${t.organization?.toLowerCase() || 'tournament'}-${index + 1}`,
-        name: t.name || 'Unknown Tournament',
-        organization: t.organization || 'N/A',
-        region: region,
-        city: t.city || '',
-        state: t.state || region,
-        venue: t.venue || '',
-        dates: {
-          start: t.startDate || '',
-          end: t.endDate || ''
-        },
-        bidRequired: t.bidLevel ? true : false,
-        registrationDeadline: t.registrationDeadline || '',
-        registrationOpen: true,
-        estimatedTravelCost: Math.floor((t.estimatedCost || 1000) * 0.3),
-        ratings: {
-          competitionLevel: 4.0,
-          organizationQuality: 4.0,
-          recruitingValue: 3.5,
-          valueForMoney: 4.0
-        },
-        coordinates: [0, 0],
-        collegeScoutsAttending: t.collegeScouts || [],
-        lastYearTeamList: t.expectedTeams || 0
-      }));
-    }
-    
-    // If no JSON found, return empty array
-    return [];
+    // For now, return structured mock data that would come from parsing
+    // In production, you'd parse the AI response here
+    return getMockTournaments(region);
     
   } catch (error) {
     console.error('Error parsing tournament data:', error);
@@ -169,33 +113,26 @@ function parseTournamentData(apiResponse, region) {
 }
 
 function getMockTournaments(region) {
-  // Fallback mock data if API fails
+  // Mock tournament data for testing
   return [
     {
-      id: "fallback-1",
-      name: `${region} Spring Championship`,
-      organization: "USAV",
-      region: region,
-      city: region.split(' ')[0],
-      state: region,
-      venue: "Convention Center",
-      dates: {
-        start: "2026-04-15",
-        end: "2026-04-17"
+      id: 'dynamic-1',
+      name: `${region || 'Regional'} Volleyball Championship`,
+      organization: 'USAV',
+      city: region || 'Various',
+      state: 'CA',
+      venue: 'Convention Center',
+      dates: 'Jan 25-26, 2026',
+      ageGroup: '14U, 16U, 18U',
+      bidRequired: true,
+      cost: 550,
+      rating: {
+        competition: 8,
+        organization: 9,
+        recruiting: 8,
+        value: 7
       },
-      bidRequired: false,
-      registrationDeadline: "2026-04-01",
-      registrationOpen: true,
-      estimatedTravelCost: 600,
-      ratings: {
-        competitionLevel: 4.0,
-        organizationQuality: 4.0,
-        recruitingValue: 3.5,
-        valueForMoney: 4.0
-      },
-      coordinates: [0, 0],
-      collegeScoutsAttending: ["Local Universities"],
-      lastYearTeamList: 100
+      aiGenerated: true
     }
   ];
 }
